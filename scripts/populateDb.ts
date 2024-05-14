@@ -24,41 +24,41 @@ const similarityMetrics: SimilarityMetric[] = [
   'dot_product',
 ]
 
-const createCollection = async (similarity_metric: SimilarityMetric = 'cosine') => {
-  try {
-    const res = await astraDb.createCollection(`chat_${similarity_metric}`, {
-      vector: {
-        dimension: 1536,
-        metric: similarity_metric,
-      }
-    });
-    console.log(res);
-  } catch (e) {
-    console.log(`chat_${similarity_metric} already exists`);
-  }
-};
+// const createCollection = async (similarity_metric: SimilarityMetric = 'cosine') => {
+//   try {
+//     const res = await astraDb.createCollection(`chat_${similarity_metric}`, {
+//       vector: {
+//         dimension: 1536,
+//         metric: similarity_metric,
+//       }
+//     });
+//     console.log(res);
+//   } catch (e) {
+//     console.log(`chat_${similarity_metric} already exists`);
+//   }
+// };
 
-const loadSampleData = async (similarity_metric: SimilarityMetric = 'cosine') => {
-  const collection = await astraDb.collection(`chat_${similarity_metric}`);
-  for await (const { url, title, content} of sampleData) {
-    const chunks = await splitter.splitText(content);
-    let i = 0;
-    for await (const chunk of chunks) {
-      const {data} = await openai.embeddings.create({input: chunk, model: 'text-embedding-ada-002'});
+// const loadSampleData = async (similarity_metric: SimilarityMetric = 'cosine') => {
+//   const collection = await astraDb.collection(`chat_${similarity_metric}`);
+//   for await (const { url, title, content} of sampleData) {
+//     const chunks = await splitter.splitText(content);
+//     let i = 0;
+//     for await (const chunk of chunks) {
+//       const {data} = await openai.embeddings.create({input: chunk, model: 'text-embedding-ada-002'});
 
-      const res = await collection.insertOne({
-        document_id: `${url}-${i}`,
-        $vector: data[0]?.embedding,
-        url,
-        title,
-        content: chunk
-      });
-      i++;
-    }
-  }
-  console.log('data loaded');
-};
+//       const res = await collection.insertOne({
+//         document_id: `${url}-${i}`,
+//         $vector: data[0]?.embedding,
+//         url,
+//         title,
+//         content: chunk
+//       });
+//       i++;
+//     }
+//   }
+//   console.log('data loaded');
+// };
 
-similarityMetrics.forEach(metric => {
-  createCollection(metric).then(() => loadSampleData(metric));
-});
+// similarityMetrics.forEach(metric => {
+//   createCollection(metric).then(() => loadSampleData(metric));
+// });
