@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import {OpenAIStream, StreamingTextResponse} from 'ai';
 import {AstraDB} from "@datastax/astra-db-ts";
+import { NextResponse } from 'next/server';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
     if (useRag) {
       const {data} = await openai.embeddings.create({input: latestMessage, model: 'text-embedding-3-large'});
 
-      const collection = await astraDb.collection(`kb1`);
+      const collection = await astraDb.collection("kb1");
 
       const cursor= collection.find(null, {
         sort: {
@@ -45,16 +46,49 @@ export async function POST(req: Request) {
       },
     ]
 
+    const mes = [...ragPrompt, ...messages]
 
-    const response = await openai.chat.completions.create(
-      {
-        model: 'gpt-4-1106-preview',
-        stream: true,
-        messages: [...ragPrompt, ...messages],
-      }
-    );
-    const stream = OpenAIStream(response);
-    return new StreamingTextResponse(stream);
+    const payload = {
+      model: "gpt-4-1106-preview",
+      messages: mes,
+      max_tokens: 256,
+      temperature: 0.8,
+      top_p: 1,
+    };
+  
+    const completion = await fetch("https://api.openai.com/v1/chat/completions", {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer sk-test-dTkZZRqwDy1uqe4D00NWT3BlbkFJ9xtDsNF7B8J8SnJHmn7m" },
+      
+      method: "POST",
+      body: JSON.stringify(payload),
+     }).then((response) => response.json());
+  
+    console.log(completion);
+    const chatGptResponse = completion.choices[0].message.content;
+  
+    return NextResponse.json(chatGptResponse)
+
+
+
+
+
+
+
+
+    // const response = await openai.chat.completions.create(
+    //   {
+    //     model: 'gpt-3.5-turbo',
+    //     stream: true,
+    //     messages: [...ragPrompt, ...messages],
+    //   }
+      
+    // );
+   
+    
+    // const stream = OpenAIStream(response);
+    // return new StreamingTextResponse(stream);
   } catch (e) {
     throw e;
   }
