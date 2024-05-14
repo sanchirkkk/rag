@@ -67,28 +67,11 @@ export async function POST(req: Request) {
   
     console.log(completion);
     const chatGptResponse = completion.choices[0].message.content;
-  
-    return NextResponse.json(chatGptResponse)
+    const regex = /[?!]/g;
+    const latest = chatGptResponse.replace(regex, ' ');
+    return NextResponse.json(latest)
 
 
-
-
-
-
-
-
-    // const response = await openai.chat.completions.create(
-    //   {
-    //     model: 'gpt-3.5-turbo',
-    //     stream: true,
-    //     messages: [...ragPrompt, ...messages],
-    //   }
-      
-    // );
-   
-    
-    // const stream = OpenAIStream(response);
-    // return new StreamingTextResponse(stream);
   } catch (e) {
     throw e;
   }
