@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     const ragPrompt = [
       {
         role: 'system',
-        content: `You are an AI assistant answering questions about Khanbank and loan service. Answer short as possible.
+        content: `You are an AI assistant answering questions about Khanbank and loan service. 
         ${docContext} 
         If the answer is not provided in the context, the AI assistant will say, "Уучлаарай би мэдэхгүй байнаr". 
       `,
