@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     ]
 
     const user = [
-      { id: "1",
+      { id: "2",
         role: 'user',
         content: ` ${msg['content']} `,
       },
