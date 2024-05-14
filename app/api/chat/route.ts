@@ -11,13 +11,13 @@ const astraDb = new AstraDB(process.env.ASTRA_DB_APPLICATION_TOKEN, process.env.
 
 export async function POST(req: Request) {
   try {
-    const {messages, useRag, llm, similarityMetric} = await req.json();
+    const msg = await req.json();
 
-    const latestMessage = messages[messages?.length - 1]?.content;
-
+    const messages = [msg['content']]
+    console.log(messages)
     let docContext = '';
-    if (useRag) {
-      const {data} = await openai.embeddings.create({input: latestMessage, model: 'text-embedding-3-large'});
+    if (true) {
+      const {data} = await openai.embeddings.create({input: msg['content'], model: 'text-embedding-3-large'});
 
       const collection = await astraDb.collection("kb1");
 
@@ -41,12 +41,19 @@ export async function POST(req: Request) {
         role: 'system',
         content: `You are an AI assistant answering questions about Khanbank and loan service. Answer short as possible.
         ${docContext} 
-        If the answer is not provided in the context, the AI assistant will say, "I'm sorry, I don't know the answer". 
+        If the answer is not provided in the context, the AI assistant will say, "Уучлаарай би мэдэхгүй байнаr". 
       `,
       },
     ]
 
-    const mes = [...ragPrompt, ...messages]
+    const user = [
+      { id: "1",
+        role: 'user',
+        content: ` ${msg['content']} `,
+      },
+    ]
+
+    const mes = [...ragPrompt, ...user]
 
     const payload = {
       model: "gpt-4-1106-preview",
@@ -55,7 +62,8 @@ export async function POST(req: Request) {
       temperature: 0.8,
       top_p: 1,
     };
-  
+    console.log("here is workin")
+
     const completion = await fetch("https://api.openai.com/v1/chat/completions", {
       headers: {
         "Content-Type": "application/json",
@@ -64,7 +72,8 @@ export async function POST(req: Request) {
       method: "POST",
       body: JSON.stringify(payload),
      }).then((response) => response.json());
-  
+     console.log("here is workin")
+   
     console.log(completion);
     const chatGptResponse = completion.choices[0].message.content;
     const regex = /[?!]/g;
